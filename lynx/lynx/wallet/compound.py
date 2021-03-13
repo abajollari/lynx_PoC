@@ -106,8 +106,8 @@ class SavingsCompound(Savings):
         amount = convertAmountToWei(self.tokenSymbol, amt)
         mint_tx = compound_token_contract.functions.mint(int(amount)).buildTransaction({
             'chainId': getChainId(),  # 1 for mainnet, 3 for ropsten
-            'gas': 500000,
-            'gasPrice': w3.toWei('20', 'gwei'),
+            'gas': 220920,
+            'gasPrice': w3.toWei(150, 'gwei'),
             'nonce': nonce
         })
         signed_txn = w3.eth.account.sign_transaction(
@@ -131,8 +131,8 @@ class SavingsCompound(Savings):
         amount = convertAmountToWei(self.tokenSymbol, amt)
         redeem_tx = compound_token_contract.functions.redeemUnderlying(int(amount)).buildTransaction({
             'chainId': getChainId(),  # 1 for mainnet, 3 for ropsten
-            'gas': 500000,
-            'gasPrice': w3.toWei('20', 'gwei'),
+            'gas': 220920,
+            'gasPrice': w3.toWei(150, 'gwei'),
             'nonce': nonce
         })
 

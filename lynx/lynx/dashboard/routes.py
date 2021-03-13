@@ -4,7 +4,7 @@ import datetime
 from flask_login import login_required, current_user
 from flask import current_app as app
 from lynx.dashboard.models import Dashboard
-from lynx.wallet.wallet import getWalletTokenBalance, getEthBalance
+from lynx.wallet.wallet import getWalletTokenBalance, getEthBalance, getGasPrice
 from lynx.wallet.compound import SavingsCompound
 from lynx.auth.models import User, UserWallet
 from lynx.wallet.aave import SavingsAave
@@ -35,13 +35,15 @@ def dashboard():
 
         erc20_balance = ''
         ethBalance = ''
+        avg_gp = 0
         if showWalletInfo.upper() == 'Y':
+            avg_gp = str(getGasPrice()*21000/1000000000)  + ' ETH' # gas 21000
             erc20_balance = str(getWalletTokenBalance(
                 wall.address, erc20_symbol)) + ' ' + erc20_symbol
             ethBalance = str(getEthBalance(wall.address)) + ' ETH'
 
         return render_template('dashboard/dashboard.html', data=dashboard_data, transactionList=trans_data,
-                               ad=wall.address, tokenbalance=erc20_balance, ethbalance=ethBalance,
+                               ad=wall.address, tokenbalance=erc20_balance, ethbalance=ethBalance, gasPrice=avg_gp,
                                showAddr=showWalletInfo.upper())
     except Exception as e:
         app.logger.error(str(e), extra={'user': ''})

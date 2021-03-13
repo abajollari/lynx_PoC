@@ -17,8 +17,6 @@ from lynx.wallet.savings import Savings
 
 class SavingsAave(Savings):
 
-    LENDING_POOL_CONTRACT_ADDR = '0xE0fBa4Fc209b4948668006B2bE61711b7f465bAe'
-
     def getDepositData(self):
         cdata = SavingsData
         cdata.current_balance = 0
@@ -99,26 +97,30 @@ class SavingsAave(Savings):
     # Deposit to Aave - actions(deposit/withdraw...) are performed against LendingPool contract and not against aToken like compound
     def doDeposit(self, amt):
 
-        if not isApproved(self.userWallet.address, self.tokenSymbol, self.LENDING_POOL_CONTRACT_ADDR, amt, ''):
+        lendingPoolCntrAdd = self.__getLendingPoolAddr()
+
+        # convert in underlying token balance (USDT and not cUSDT)
+        amt = convertAmountToWei(self.tokenSymbol, amt)
+
+        if not isApproved(self.userWallet.address, self.tokenSymbol, lendingPoolCntrAdd, amt, ''):
             approve(self.userWallet.address, self.tokenSymbol,
-                    self.LENDING_POOL_CONTRACT_ADDR, amt, self.userWallet.privateKey, '')
+                    lendingPoolCntrAdd, amt, self.userWallet.privateKey, '')
 
         w3 = getW3()
         # lendingpool contract address
-        contract_address = self.LENDING_POOL_CONTRACT_ADDR
+        contract_address = lendingPoolCntrAdd
         abi_json = getContractAbiJson('AAVE')
         abi = abi_json['result']
         lendingPool_contract = getContract(w3, abi, contract_address)
         nonce = w3.eth.getTransactionCount(self.userWallet.address)
 
         tokenAddress = getTokenAddress(self.tokenSymbol)  # 'a' + symbol)
-        # convert in underlying token balance (USDT and not cUSDT)
-        amt = convertAmountToWei(self.tokenSymbol, amt)
+        
         mint_tx = lendingPool_contract.functions.deposit(Web3.toChecksumAddress(tokenAddress), int(amt),
                                                          Web3.toChecksumAddress(self.userWallet.address), int(0)).buildTransaction({
                                                              'chainId': getChainId(),
-                                                             'gas': 500000,
-                                                             'gasPrice': w3.toWei('20', 'gwei'),
+                                                             'gas': 220920,
+                                                             'gasPrice': w3.toWei('150', 'gwei'),
                                                              'nonce': nonce
                                                          })
         signed_txn = w3.eth.account.sign_transaction(
@@ -126,6 +128,8 @@ class SavingsAave(Savings):
         try:
             tx = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
             return tx.hex()
+            # txn_receipt = w3.eth.waitForTransactionReceipt(tx)
+            # return txn_receipt
         except ValueError as err:
             # return (json.loads(str(err).replace("'", '"')), 402, {'Content-Type': 'application/json'})
             return 'Error: ' + str(err)
@@ -135,7 +139,7 @@ class SavingsAave(Savings):
         # function withdraw(address asset, uint256 amt, address to)
         w3 = getW3()
         # lendingpool contract address
-        contract_address = self.LENDING_POOL_CONTRACT_ADDR
+        contract_address = self.__getLendingPoolAddr()
         abi_json = getContractAbiJson('AAVE')
         abi = abi_json['result']
         lendingPool_contract = getContract(w3, abi, contract_address)
@@ -146,8 +150,8 @@ class SavingsAave(Savings):
         redeem_tx = lendingPool_contract.functions.withdraw(Web3.toChecksumAddress(tokenAddress),
                                                             int(amt), Web3.toChecksumAddress(self.userWallet.address)).buildTransaction({
                                                                 'chainId': getChainId(),
-                                                                'gas': 500000,
-                                                                'gasPrice': w3.toWei('20', 'gwei'),
+                                                                'gas': 220920,
+                                                                'gasPrice': w3.toWei(150, 'gwei'),
                                                                 'nonce': nonce
                                                             })
 
@@ -164,7 +168,7 @@ class SavingsAave(Savings):
     def getTokenAPY(self):
         w3 = getW3()
         # lendingpool contract address
-        contract_address = self.LENDING_POOL_CONTRACT_ADDR
+        contract_address = self.__getLendingPoolAddr()  # self.LENDING_POOL_CONTRACT_ADDR
         abi_json = getContractAbiJson('AAVE')
         abi = abi_json['result']
         lendingPool_contract = getContract(w3, abi, contract_address)
@@ -175,3 +179,9 @@ class SavingsAave(Savings):
             Web3.toChecksumAddress(tokenAddress)).call()
         # fourth element has the borrowRate in ray (27 digits )
         return (reserveData[3] / 10 ** 27) * 100  # convert to %
+
+    def __getLendingPoolAddr(self):
+        if app.config['NET'] == 'mainnet':
+            return '0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9'
+        else:
+            return '0xE0fBa4Fc209b4948668006B2bE61711b7f465bAe'

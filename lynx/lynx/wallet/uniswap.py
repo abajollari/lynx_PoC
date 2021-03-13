@@ -5,6 +5,7 @@ from lynx.wallet.wallet import approve, isApproved, getWalletTokenBalance
 import datetime
 import time
 
+
 class UniTrade():
 
     UNISWAP_CONTRACT_ADDR = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'
@@ -16,7 +17,8 @@ class UniTrade():
 
         userToken = app.config['SYMB']  # token user owns
 
-        availableBalance = getWalletTokenBalance(self.userWallet.address, userToken)
+        availableBalance = getWalletTokenBalance(
+            self.userWallet.address, userToken)
         if (availableBalance < token_amount):
             return "Insuficent amount in your wallet"
 
@@ -25,7 +27,7 @@ class UniTrade():
         amount = convertAmountToWei(userToken, token_amount)
 
         if not isApproved(self.userWallet.address, userToken, uni_contract_address, amount, 'UNI'):
-            approve(userWall.address, userToken,
+            approve(self.userWallet.address, userToken,
                     uni_contract_address, amount, self.userWallet.privateKey, 'UNI')
 
         w3 = getW3()
@@ -42,9 +44,10 @@ class UniTrade():
         # uint deadline
         # ) external returns (uint[] memory amounts);
 
-        amountOutMin = int(amount) * 0.0098  # __convertAmountToWei('DAI', amt/2)
+        # __convertAmountToWei('DAI', amt/2)
+        amountOutMin = int(amount) * 0.0098
         addressPaths = [Web3.toChecksumAddress(getTokenAddress(
-            userToken,'UNI')), Web3.toChecksumAddress(getTokenAddress(token_symbol,'UNI'))]
+            userToken, 'UNI')), Web3.toChecksumAddress(getTokenAddress(token_symbol, 'UNI'))]
 
         # current_time = datetime.datetime.now(datetime.timezone.utc)
         # unix_timestamp = current_time.timestamp() # works if Python >= 3.3
@@ -52,16 +55,17 @@ class UniTrade():
         deadline = int(time.time()) + 10000
 
         trade_tx = uniswap_contract.functions.swapExactTokensForTokens(int(amount),
-                                                                    int(amountOutMin),
-                                                                    addressPaths,
-                                                                    self.userWallet.address,
-                                                                    deadline).buildTransaction({
-                                                                        'chainId': getChainId(),
-                                                                        'gas': 5000000,
-                                                                        'gasPrice': w3.toWei('20', 'gwei'),
-                                                                        'nonce': nonce
-                                                                    })
-        signed_txn = w3.eth.account.sign_transaction(trade_tx, self.userWallet.privateKey)
+                                                                       int(amountOutMin),
+                                                                       addressPaths,
+                                                                       self.userWallet.address,
+                                                                       deadline).buildTransaction({
+                                                                           'chainId': getChainId(),
+                                                                           'gas': 2209200,
+                                                                           'gasPrice': w3.toWei(150, 'gwei'),
+                                                                           'nonce': nonce
+                                                                       })
+        signed_txn = w3.eth.account.sign_transaction(
+            trade_tx, self.userWallet.privateKey)
         try:
             tx = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
             # return tx.hex()
@@ -78,7 +82,7 @@ class UniTrade():
 
     def getAmountsOut(self, token_symbol, token_amount):
 
-        #function getAmountsOut(uint amountIn, address[] memory path) internal view returns (uint[] memory amounts)
+        # function getAmountsOut(uint amountIn, address[] memory path) internal view returns (uint[] memory amounts)
         userToken = app.config['SYMB']  # token user owns
 
         amount = convertAmountToWei(userToken, token_amount)
@@ -88,11 +92,11 @@ class UniTrade():
         abi = abi_json['abi']
         uniswap_contract = getContract(w3, abi, self.UNISWAP_CONTRACT_ADDR)
 
-        addressPaths = [Web3.toChecksumAddress(getTokenAddress( userToken,'UNI')), 
-                        Web3.toChecksumAddress(getTokenAddress('WETH','UNI')),
-                        Web3.toChecksumAddress(getTokenAddress(token_symbol,'UNI'))]
+        addressPaths = [Web3.toChecksumAddress(getTokenAddress(userToken, 'UNI')),
+                        Web3.toChecksumAddress(getTokenAddress('WETH', 'UNI')),
+                        Web3.toChecksumAddress(getTokenAddress(token_symbol, 'UNI'))]
 
-        amountsOut = uniswap_contract.functions.getAmountsOut(int(amount), addressPaths).call()
+        amountsOut = uniswap_contract.functions.getAmountsOut(
+            int(amount), addressPaths).call()
 
         return convertAmountFromWei(token_symbol, amountsOut[2])
-
