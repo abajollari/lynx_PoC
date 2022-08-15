@@ -1,5 +1,5 @@
-from eth_wallet import Wallet
-from eth_wallet.utils import generate_entropy
+# from eth_wallet import Wallet
+# from eth_wallet.utils import generate_entropy
 from lynx.wallet.models import SavingsData
 from lynx.dashboard.models import UserTransaction
 import json

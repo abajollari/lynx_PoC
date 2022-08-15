@@ -27,3 +27,10 @@ pip install flask-babel
 
 --compile translation files
 .\venv\Scripts\pybabel compile -d lynx/translations
+
+
+
+
+---------
+activate venv: 
+& c:/Users/arian/lynx-Dev/lynx/venv/Scripts/Activate.ps1

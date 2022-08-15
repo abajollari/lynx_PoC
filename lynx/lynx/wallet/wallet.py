@@ -1,5 +1,5 @@
-from eth_wallet import Wallet
-from eth_wallet.utils import generate_entropy
+#from eth_wallet import Wallet
+#from eth_wallet.utils import generate_entropy
 import json
 import requests
 from web3 import Web3
@@ -14,7 +14,7 @@ from lynx.wallet.helper import getW3, getTokenAddress, getContractAbiJson, getCo
 
 def generateWallet(uid):
     # 128 strength entropy
-    ENTROPY = generate_entropy(strength=128)
+    ENTROPY = 'xxx' # generate_entropy(strength=128)
     w3 = getW3()
     # , 12, 'english', "m/44''/60'/0'/0/0")
     acc = w3.eth.account.create(ENTROPY)

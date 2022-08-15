@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, request, flash, redirect
+from flask import render_template, redirect, url_for, request, flash
 from lynx.dashboard import bpDasboard
 import datetime
 from flask_login import login_required, current_user

@@ -3,9 +3,11 @@ from lynx import create_app, db
 from flask_login import current_user
 from lynx.services.mail_api import send_email
 from flask_babel import Babel
+from zksync_sdk import ZkSyncLibrary
 
 app = create_app()
 babel = Babel(app) #language support
+lib = ZkSyncLibrary()
 
 @babel.localeselector
 def get_locale():

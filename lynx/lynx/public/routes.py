@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, request, flash, redirect
+from flask import render_template, redirect, url_for, request, flash
 from lynx.public import bp
 from lynx.public.forms import ContactForm
 from lynx.services.mail_api import send_email
